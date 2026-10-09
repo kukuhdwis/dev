@@ -1,20 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 
+// The most used and widely known frameworks
 const TECH_ITEMS = [
-  ['LARAVEL', 'Lv', '#1d4ed8', 'lumen.app'],
-  ['REACT', 'Re', '#2563eb', 'soleil.shop'],
-  ['NEXT.JS', 'N', '#334155', 'orbit.io'],
-  ['POSTGRESQL', 'Pg', '#0f766e', 'atelier.studio'],
-  ['VUE.JS', 'Vu', '#0369a1', 'fieldnotes.blog'],
-  ['NODE.JS', 'Nd', '#475569', 'lumen.app'],
-  ['FIREBASE', 'Fb', '#1e40af', 'soleil.shop'],
-  ['N8N', 'n8', '#3b5b9e', 'orbit.io'],
-  ['TAILWIND', 'Tw', '#0e7490', 'atelier.studio'],
-  ['REST API', '{}', '#0f766e', 'fieldnotes.blog'],
-  ['DOCKER', 'Dk', '#0284c7', 'lumen.app'],
-  ['LIVEWIRE', 'Lw', '#4f46e5', 'soleil.shop'],
-  ['TYPESCRIPT', 'TS', '#1d4ed8', 'orbit.io'],
-  ['MYSQL', 'My', '#64748b', 'atelier.studio'],
+  ['REACT', 'Re', '#2563eb', 'react.dev'],
+  ['NEXT.JS', 'N', '#334155', 'nextjs.org'],
+  ['LARAVEL', 'Lv', '#ef4444', 'laravel.com'],
+  ['NODE.JS', 'Nd', '#16a34a', 'nodejs.org'],
+  ['VUE.JS', 'Vu', '#10b981', 'vuejs.org'],
+  ['TAILWIND', 'Tw', '#0ea5e9', 'tailwindcss.com'],
+  ['POSTGRESQL', 'Pg', '#0f766e', 'postgresql.org'],
+  ['DOCKER', 'Dk', '#0284c7', 'docker.com'],
 ];
 
 const CASE_STUDIES = [
@@ -98,6 +93,281 @@ const TERRITORIES = [
   },
 ];
 
+// Helper to pad frame number
+const padZero = (n) => String(n).padStart(3, '0');
+
+/**
+ * 3D Motion Sequence 1 Component (150 frames, scroll scrub + interactive controls)
+ */
+function MotionSequence1() {
+  const containerRef = useRef(null);
+  const canvasRef = useRef(null);
+  const [frameIndex, setFrameIndex] = useState(1);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [loadedCount, setLoadedCount] = useState(0);
+  const imagesRef = useRef([]);
+
+  const TOTAL_FRAMES = 150;
+
+  // Preload frames
+  useEffect(() => {
+    let count = 0;
+    const images = [];
+
+    for (let i = 1; i <= TOTAL_FRAMES; i++) {
+      const img = new Image();
+      img.src = `/motion1/ezgif-frame-${padZero(i)}.webp`;
+      img.onload = () => {
+        count++;
+        setLoadedCount(count);
+      };
+      images[i] = img;
+    }
+    imagesRef.current = images;
+  }, []);
+
+  // Draw current frame on canvas
+  const drawFrame = (idx) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const img = imagesRef.current[idx];
+
+    if (img && img.complete && img.naturalWidth > 0) {
+      canvas.width = canvas.clientWidth * window.devicePixelRatio || 800;
+      canvas.height = canvas.clientHeight * window.devicePixelRatio || 500;
+
+      // Draw aspect-ratio contain/cover
+      const hRatio = canvas.width / img.naturalWidth;
+      const vRatio = canvas.height / img.naturalHeight;
+      const ratio = Math.min(hRatio, vRatio);
+      const centerShiftX = (canvas.width - img.naturalWidth * ratio) / 2;
+      const centerShiftY = (canvas.height - img.naturalHeight * ratio) / 2;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(
+        img,
+        0,
+        0,
+        img.naturalWidth,
+        img.naturalHeight,
+        centerShiftX,
+        centerShiftY,
+        img.naturalWidth * ratio,
+        img.naturalHeight * ratio
+      );
+    }
+  };
+
+  useEffect(() => {
+    drawFrame(frameIndex);
+  }, [frameIndex, loadedCount]);
+
+  // Scroll scrubbing through the 250vh container
+  useEffect(() => {
+    if (isPlaying) return;
+
+    const handleScroll = () => {
+      const container = containerRef.current;
+      if (!container) return;
+      const rect = container.getBoundingClientRect();
+      const scrollDist = container.offsetHeight - window.innerHeight;
+
+      if (scrollDist > 0) {
+        const progress = Math.min(1, Math.max(0, -rect.top / scrollDist));
+        const frame = Math.min(TOTAL_FRAMES, Math.max(1, Math.round(progress * (TOTAL_FRAMES - 1)) + 1));
+        setFrameIndex(frame);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [isPlaying]);
+
+  // Auto-play loop toggle
+  useEffect(() => {
+    if (!isPlaying) return;
+
+    let animId;
+    let lastTime = 0;
+    const fps = 30;
+    const interval = 1000 / fps;
+
+    const playLoop = (time) => {
+      if (time - lastTime > interval) {
+        setFrameIndex((prev) => (prev >= TOTAL_FRAMES ? 1 : prev + 1));
+        lastTime = time;
+      }
+      animId = requestAnimationFrame(playLoop);
+    };
+
+    animId = requestAnimationFrame(playLoop);
+    return () => cancelAnimationFrame(animId);
+  }, [isPlaying]);
+
+  const captionPhase =
+    frameIndex < 50
+      ? '01 / GEOMETRY — Interactive 3D Spatial Rendering'
+      : frameIndex < 100
+      ? '02 / ARCHITECTURE — Fluid Animation & Seamless Physics'
+      : '03 / DELIVERY — Optimized for Web Standards & Precision';
+
+  return (
+    <section ref={containerRef} className="h-[250vh] relative border-b border-[#22304a] bg-[#070b14]">
+      <div className="sticky top-0 h-screen flex flex-col justify-between items-center py-10 px-4 overflow-hidden">
+        {/* Section Header */}
+        <div className="text-center z-10 pt-4">
+          <div className="font-['Instrument_Serif'] italic text-[#4fa3d9] text-sm">(Interactive 3D Motion)</div>
+          <h2 className="text-[clamp(1.8rem,4vw,3.2rem)] font-extrabold tracking-tight text-white mt-1">
+            Engineered with <em className="font-['Instrument_Serif'] font-normal italic text-[#4fa3d9]">motion.</em>
+          </h2>
+          <p className="text-[#8a97ad] text-xs max-w-md mx-auto mt-1">
+            Scroll to fly through the dynamic viewport sequence or use playback controls below.
+          </p>
+        </div>
+
+        {/* Canvas Display Viewport */}
+        <div className="relative w-full max-w-4xl flex-1 flex items-center justify-center my-4">
+          <canvas
+            ref={canvasRef}
+            className="w-full h-full max-h-[560px] object-contain rounded-2xl drop-shadow-[0_25px_50px_rgba(0,0,0,0.8)]"
+          />
+
+          {/* Floating Phase Badge */}
+          <div className="absolute top-4 left-4 z-10 px-3.5 py-1.5 rounded-full bg-black/60 border border-white/10 backdrop-blur-md text-[11px] font-mono text-cyan-300">
+            {captionPhase}
+          </div>
+        </div>
+
+        {/* Interactive Scrub & Playback Controller */}
+        <div className="w-full max-w-xl z-10 bg-[#111a2e]/80 border border-[#22304a] backdrop-blur-md rounded-full px-5 py-2.5 flex items-center gap-4 text-xs shadow-2xl">
+          <button
+            onClick={() => setIsPlaying(!isPlaying)}
+            className="px-3 py-1 rounded-full bg-[#2f6fed] hover:bg-[#3b82f6] text-white font-bold transition-all"
+          >
+            {isPlaying ? 'Pause' : 'Play 3D'}
+          </button>
+
+          <input
+            type="range"
+            min="1"
+            max={TOTAL_FRAMES}
+            value={frameIndex}
+            onChange={(e) => {
+              setIsPlaying(false);
+              setFrameIndex(Number(e.target.value));
+            }}
+            className="flex-1 accent-[#4fa3d9] cursor-pointer"
+          />
+
+          <span className="font-mono text-[11px] text-[#8a97ad] whitespace-nowrap">
+            {padZero(frameIndex)} / {TOTAL_FRAMES}
+          </span>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/**
+ * 3D Motion Background 2 Component (300 frames, ambient loop for Contact section)
+ */
+function MotionBackground2() {
+  const canvasRef = useRef(null);
+  const containerRef = useRef(null);
+  const isVisibleRef = useRef(false);
+  const imagesRef = useRef([]);
+  const frameRef = useRef(1);
+
+  const TOTAL_FRAMES = 300;
+
+  // Preload frames in chunks
+  useEffect(() => {
+    const images = [];
+    for (let i = 1; i <= TOTAL_FRAMES; i++) {
+      const img = new Image();
+      img.src = `/motion2/ezgif-frame-${padZero(i)}.jpg`;
+      images[i] = img;
+    }
+    imagesRef.current = images;
+  }, []);
+
+  // Visibility tracking
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isVisibleRef.current = entry.isIntersecting;
+      },
+      { threshold: 0.1 }
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+    return () => observer.disconnect();
+  }, []);
+
+  // Ambient playback loop
+  useEffect(() => {
+    let animId;
+    let lastTime = 0;
+    const fps = 24;
+    const interval = 1000 / fps;
+
+    const loop = (time) => {
+      if (isVisibleRef.current && time - lastTime > interval) {
+        frameRef.current = (frameRef.current % TOTAL_FRAMES) + 1;
+        const canvas = canvasRef.current;
+        if (canvas) {
+          const ctx = canvas.getContext('2d');
+          const img = imagesRef.current[frameRef.current];
+
+          if (img && img.complete && img.naturalWidth > 0) {
+            canvas.width = canvas.clientWidth || 800;
+            canvas.height = canvas.clientHeight || 600;
+
+            // Draw cover aspect ratio
+            const hRatio = canvas.width / img.naturalWidth;
+            const vRatio = canvas.height / img.naturalHeight;
+            const ratio = Math.max(hRatio, vRatio);
+            const centerShiftX = (canvas.width - img.naturalWidth * ratio) / 2;
+            const centerShiftY = (canvas.height - img.naturalHeight * ratio) / 2;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(
+              img,
+              0,
+              0,
+              img.naturalWidth,
+              img.naturalHeight,
+              centerShiftX,
+              centerShiftY,
+              img.naturalWidth * ratio,
+              img.naturalHeight * ratio
+            );
+          }
+        }
+        lastTime = time;
+      }
+      animId = requestAnimationFrame(loop);
+    };
+
+    animId = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(animId);
+  }, []);
+
+  return (
+    <div ref={containerRef} className="absolute inset-0 pointer-events-none overflow-hidden z-0">
+      <canvas
+        ref={canvasRef}
+        className="w-full h-full object-cover opacity-25 mix-blend-screen filter contrast-125"
+      />
+      {/* Dark gradient overlay to preserve contrast */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#0a1020] via-[#0a1020]/75 to-[#0a1020]" />
+    </div>
+  );
+}
+
 export default function App() {
   const [preloaderDone, setPreloaderDone] = useState(false);
   const [preloaderPercent, setPreloaderPercent] = useState(0);
@@ -113,7 +383,6 @@ export default function App() {
   const worldRef = useRef(null);
   const hudRef = useRef(null);
   const caseSectionRef = useRef(null);
-  const manifestoRef = useRef(null);
 
   // Preloader count
   useEffect(() => {
@@ -155,7 +424,7 @@ export default function App() {
     };
 
     const handleMouseOver = (e) => {
-      const isInteractive = !!e.target.closest('a, button, [role="button"], .interactive-target');
+      const isInteractive = !!e.target.closest('a, button, [role="button"], .interactive-target, input');
       setCursorExpanded(isInteractive);
     };
 
@@ -243,7 +512,7 @@ export default function App() {
         >
           <div className="text-center overflow-hidden">
             <h2 className="font-['Instrument_Serif'] text-[clamp(2.4rem,9vw,6rem)] leading-none animate-[upPreload_1s_0.1s_both_cubic-bezier(0.2,0.7,0.2,1)]">
-              Kukuh Dwi Saputra
+              kukuhdev.com
             </h2>
             <b className="block font-extrabold text-[0.8rem] tracking-[0.3em] mt-4 text-[#4fa3d9]">
               {preloaderPercent}%
@@ -287,8 +556,8 @@ export default function App() {
 
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-40 flex justify-between items-center px-[5vw] py-3.5 backdrop-blur-md bg-[#0a1020]/75 border-b border-[#22304a]/50">
-        <b className="flex items-center gap-2 font-extrabold text-[1.15rem] tracking-tight">
-          Kukuh<em className="font-['Instrument_Serif'] font-normal italic text-[#4fa3d9]">.dev</em>
+        <b className="flex items-center gap-1.5 font-extrabold text-[1.15rem] tracking-tight">
+          kukuhdev<em className="font-['Instrument_Serif'] font-normal italic text-[#4fa3d9]">.com</em>
           <svg className="w-5 h-5 text-[#4fa3d9] animate-[spin_8s_linear_infinite]" viewBox="0 0 20 20" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
             <path d="M10 1v18M2.2 5.5l15.6 9M2.2 14.5l15.6-9" />
           </svg>
@@ -364,13 +633,13 @@ export default function App() {
                       <div>
                         <div className="flex items-center justify-between text-xs text-slate-400 mb-3">
                           <span className="font-bold text-white tracking-widest">{tech}</span>
-                          <span className="font-mono text-[10px] text-cyan-400">READY</span>
+                          <span className="font-mono text-[10px] text-cyan-400">CORE FRAMEWORK</span>
                         </div>
                         <h4 className="text-white font-semibold text-lg leading-tight mb-2">
                           Production Ready Systems
                         </h4>
                         <p className="text-slate-400 text-xs leading-relaxed">
-                          Robust backend logic, clean schema design, and microservice APIs built with {tech}.
+                          Clean code, scalable database design, and resilient architecture built with {tech}.
                         </p>
                       </div>
                       <div className="pt-3 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400 font-mono">
@@ -391,7 +660,7 @@ export default function App() {
               <em className="font-['Instrument_Serif'] font-normal italic text-[#4fa3d9]">assumes</em> its role.
             </h1>
             <p className="font-['Instrument_Serif'] italic text-[#8a97ad] text-[1.15rem] mt-4">
-              (Kukuh Dwi Saputra, full-stack web developer)
+              (Kukuh Dwi Saputra — kukuhdev.com)
             </p>
           </div>
 
@@ -419,13 +688,16 @@ export default function App() {
         </div>
       </header>
 
+      {/* NEW: 3D Motion Sequence 1 (150 Frames from /motion1/) */}
+      <MotionSequence1 />
+
       {/* Infinite Tech Marquee */}
       <div className="overflow-hidden whitespace-nowrap border-y border-[#22304a] py-4 text-[clamp(1.2rem,3vw,2rem)] font-bold tracking-tight bg-[#111a2e]/30">
         <div className="inline-block animate-[marqueeInfinite_28s_linear_infinite]">
           {Array(2).fill(0).map((_, i) => (
             <span key={i}>
-              <span className="mx-7">Laravel</span><span className="text-[#4fa3d9]">·</span>
-              <span className="mx-7 font-['Instrument_Serif'] italic font-normal text-[#4fa3d9]">React</span><span>·</span>
+              <span className="mx-7">React</span><span className="text-[#4fa3d9]">·</span>
+              <span className="mx-7 font-['Instrument_Serif'] italic font-normal text-[#4fa3d9]">Laravel</span><span>·</span>
               <span className="mx-7">Next.js</span><span className="text-[#4fa3d9]">·</span>
               <span className="mx-7 font-['Instrument_Serif'] italic font-normal text-[#4fa3d9]">PostgreSQL</span><span>·</span>
               <span className="mx-7">Vue.js</span><span className="text-[#4fa3d9]">·</span>
@@ -612,56 +884,61 @@ export default function App() {
         </div>
       </div>
 
-      {/* Contact Section */}
-      <section className="max-w-[1200px] mx-auto px-[6vw] py-[16vh]" id="contact">
-        <div className="font-['Instrument_Serif'] italic text-[#8a97ad] text-[1.1rem]">(Contact)</div>
-        <h2 className="text-[clamp(2.4rem,8vw,6.6rem)] leading-[0.98] tracking-tight font-extrabold my-5">
-          Let's build something <em className="font-['Instrument_Serif'] font-normal italic text-[#4fa3d9]">worth owning.</em>
-        </h2>
+      {/* Contact Section with Motion 2 Ambient Background */}
+      <section className="relative overflow-hidden py-[16vh] border-t border-[#22304a]" id="contact">
+        {/* NEW: 3D Motion Background 2 (300 Frames from /motion2/) */}
+        <MotionBackground2 />
 
-        <a
-          href="mailto:kukuhdwi010@gmail.com"
-          className="interactive-target inline-block font-['Instrument_Serif'] text-[clamp(1.4rem,4.2vw,3rem)] text-[#e8edf5] border-b border-[#4fa3d9] pb-1 hover:text-[#4fa3d9] transition-colors"
-        >
-          kukuhdwi010@gmail.com
-        </a>
+        <div className="relative z-10 max-w-[1200px] mx-auto px-[6vw]">
+          <div className="font-['Instrument_Serif'] italic text-[#8a97ad] text-[1.1rem]">(Contact)</div>
+          <h2 className="text-[clamp(2.4rem,8vw,6.6rem)] leading-[0.98] tracking-tight font-extrabold my-5">
+            Let's build something <em className="font-['Instrument_Serif'] font-normal italic text-[#4fa3d9]">worth owning.</em>
+          </h2>
 
-        <div className="flex flex-wrap gap-3.5 mt-9">
           <a
-            href="https://wa.me/6281392489452"
-            target="_blank"
-            rel="noreferrer"
-            className="interactive-target inline-block px-7 py-3 rounded-full bg-gradient-to-r from-[#2f6fed] to-[#4fa3d9] text-white font-bold hover:brightness-110 transition-all shadow-[0_4px_20px_rgba(47,111,237,0.3)]"
+            href="mailto:kukuhdwi010@gmail.com"
+            className="interactive-target inline-block font-['Instrument_Serif'] text-[clamp(1.4rem,4.2vw,3rem)] text-[#e8edf5] border-b border-[#4fa3d9] pb-1 hover:text-[#4fa3d9] transition-colors"
           >
-            WhatsApp
+            kukuhdwi010@gmail.com
           </a>
-          <a
-            href="https://www.linkedin.com/in/kukuh-dwi-s/"
-            target="_blank"
-            rel="noreferrer"
-            className="interactive-target inline-block px-7 py-3 rounded-full border border-[#22304a] text-white font-bold hover:border-[#4fa3d9] hover:bg-white/5 transition-all"
-          >
-            LinkedIn
-          </a>
-          <a
-            href="https://github.com/kukuhdwis"
-            target="_blank"
-            rel="noreferrer"
-            className="interactive-target inline-block px-7 py-3 rounded-full border border-[#22304a] text-white font-bold hover:border-[#4fa3d9] hover:bg-white/5 transition-all"
-          >
-            GitHub
-          </a>
+
+          <div className="flex flex-wrap gap-3.5 mt-9">
+            <a
+              href="https://wa.me/6281392489452"
+              target="_blank"
+              rel="noreferrer"
+              className="interactive-target inline-block px-7 py-3 rounded-full bg-gradient-to-r from-[#2f6fed] to-[#4fa3d9] text-white font-bold hover:brightness-110 transition-all shadow-[0_4px_20px_rgba(47,111,237,0.3)] backdrop-blur-sm"
+            >
+              WhatsApp
+            </a>
+            <a
+              href="https://www.linkedin.com/in/kukuh-dwi-s/"
+              target="_blank"
+              rel="noreferrer"
+              className="interactive-target inline-block px-7 py-3 rounded-full border border-[#22304a] bg-[#111a2e]/60 backdrop-blur-md text-white font-bold hover:border-[#4fa3d9] hover:bg-white/5 transition-all"
+            >
+              LinkedIn
+            </a>
+            <a
+              href="https://github.com/kukuhdwis"
+              target="_blank"
+              rel="noreferrer"
+              className="interactive-target inline-block px-7 py-3 rounded-full border border-[#22304a] bg-[#111a2e]/60 backdrop-blur-md text-white font-bold hover:border-[#4fa3d9] hover:bg-white/5 transition-all"
+            >
+              GitHub
+            </a>
+          </div>
         </div>
       </section>
 
       {/* Giant Watermark */}
       <div className="giant-stroke-text select-none">
-        KUKUH.DEV
+        KUKUHDEV.COM
       </div>
 
       {/* Footer */}
-      <footer className="text-center text-[#8a97ad] text-xs py-10 px-[5vw] border-t border-[#22304a]/40">
-        © 2026 Kukuh Dwi Saputra · Purbalingga, Central Java, Indonesia
+      <footer className="text-center text-[#8a97ad] text-xs py-10 px-[5vw] border-t border-[#22304a]/40 bg-[#070b14]">
+        © 2026 Kukuh Dwi Saputra · kukuhdev.com · Purbalingga, Central Java, Indonesia
       </footer>
     </div>
   );
