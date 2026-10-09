@@ -11,9 +11,8 @@
   --color-accent-gold: #c9a24b;
   --color-text-main: #e8edf5;
   --color-text-mute: #8a97ad;
-  --font-serif: 'Instrument Serif', Georgia, serif;
-  --font-sans: 'Inter Tight', 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --font-sans: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
 }
 
 :root {
@@ -128,7 +127,13 @@ body {
 }
 
 @keyframes marqueeInfinite {
-  to { transform: translateX(-50%); }
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes marqueeLoop {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
 }
 
 @keyframes upPreload {
@@ -170,22 +175,22 @@ body {
 /* Custom interactive cursor */
 .custom-cursor {
   position: fixed;
-  left: -20px;
-  top: -20px;
+  left: 0;
+  top: 0;
   width: 14px;
   height: 14px;
   border-radius: 50%;
   background: #ffffff;
   mix-blend-mode: difference;
   pointer-events: none;
-  z-index: 90;
-  transition: width 0.25s, height 0.25s, margin 0.25s;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  transition: width 0.15s ease-out, height 0.15s ease-out;
 }
 
 .custom-cursor.expanded {
-  width: 56px;
-  height: 56px;
-  margin: -21px 0 0 -21px;
+  width: 52px;
+  height: 52px;
 }
 
 @media (hover: none) {
